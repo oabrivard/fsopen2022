@@ -1,0 +1,24 @@
+note over browser:
+user enters text in the [note] input field
+and clicks on [Save] button
+end note
+
+note over browser:
+browser starts executing js-code
+that posts JSON data to server
+browser update the page with the new note
+before sending data to the server
+data is sent in JSON format
+end note
+
+browser->server: HTTP POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+
+note over server:
+server executes the event handler that
+- creates a new note using JSON data received from the browser
+- saves the new note in memory
+- returns operation result as JSON data and a 201 status code
+end note
+
+server-->browser: JSON data
+
