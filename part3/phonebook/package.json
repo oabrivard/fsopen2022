@@ -6,15 +6,23 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ui": "rm -rf build && cd ../../part2/phonebook && npm run build && cd ../../part3/phonebook && cp -r ../../part2/phonebook/build .",
+    "deploy": "git push heroku master",
+    "deploy:full": "git add . && git commit -m uibuild && npm run deploy",    
+    "logs:prod": "heroku logs --tail"
+},
   "author": "Olivier Abrivard",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.3",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
-  }
+  },
+  "engines": {
+    "node": "^16.13.2"
+  }  
 }
