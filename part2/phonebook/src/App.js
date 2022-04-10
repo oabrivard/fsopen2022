@@ -97,8 +97,8 @@ const App = () => {
           setPersons(persons.map(p => p.id !== person.id ? p : person))
         })
         .catch(error => {
-          displayNotification({color:'red', message:`the person '${existingPerson.name}' was already deleted from server`})
-          setPersons(persons.filter(p => p.id !== existingPerson.id))
+          displayNotification({color:'red', message:error.response.data.error})
+          //setPersons(persons.filter(p => p.id !== existingPerson.id))
         })
       }
     } else {
@@ -110,6 +110,9 @@ const App = () => {
           setPersons(persons.concat(person))
           setNewName('')
           setNewNumber('')
+        })
+        .catch(error => {
+          displayNotification({color:'red', message:error.response.data.error})
         })
     }
   }

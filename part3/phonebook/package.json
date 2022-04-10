@@ -10,7 +10,8 @@
     "build:ui": "rm -rf build && cd ../../part2/phonebook && npm run build && cd ../../part3/phonebook && cp -r ../../part2/phonebook/build .",
     "deploy": "git push heroku master",
     "deploy:full": "git add . && git commit -m uibuild && npm run deploy",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail",
+    "lint": "eslint ."
   },
   "author": "Olivier Abrivard",
   "license": "ISC",
@@ -22,6 +23,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.13.0",
     "nodemon": "^2.0.15"
   },
   "engines": {
