@@ -5,5 +5,5 @@ content-type: application/json
     "title": "Nauges",
     "author": "Louis Nauges",
     "url": "https://nauges.typepad.com/",
-    "lieks": 5
+    "likes": 5
 }
