@@ -4,13 +4,17 @@ const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const { initial } = require('lodash')
+const User = require('../models/user')
 
 beforeEach(async () => {
   await Blog.deleteMany({})
   const blogObjects = helper.initialBlogs.map(b => new Blog(b))
   const promiseArray = blogObjects.map(b => b.save())
   await Promise.all(promiseArray)
+
+  await User.deleteMany({})
+  const user = new User({ username: 'test' })
+  await user.save()
 })
 
 describe('when there is initially some blogs saved', () => {
@@ -74,11 +78,14 @@ describe('viewing a specific blog', () => {
 
 describe('addition of a new blog', () => {
   test('a valid blog can be added', async () => {
+    const users = await helper.usersInDb()
+
     const newBlog = {
       title: 'Nauges',
       author: 'Louis Nauges',
       url: 'https://nauges.typepad.com/',
-      likes: 5
+      likes: 5,
+      userId: users[0].id
     }
 
     await api
@@ -95,6 +102,26 @@ describe('addition of a new blog', () => {
   })
 
   test('blog without url is not added', async () => {
+    const users = await helper.usersInDb()
+
+    const newBlog = {
+      title: 'Nauges',
+      author: 'Louis Nauges',
+      likes: 5,
+      userId: users[0].id
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+  })
+
+  test('blog without a valid user is not added', async () => {
     const newBlog = {
       title: 'Nauges',
       author: 'Louis Nauges',
@@ -112,10 +139,13 @@ describe('addition of a new blog', () => {
   })
 
   test('likes value for a new blog is 0 by default', async () => {
+    const users = await helper.usersInDb()
+
     const newBlog = {
       title: 'Nauges',
       author: 'Louis Nauges',
-      url: 'https://nauges.typepad.com/'
+      url: 'https://nauges.typepad.com/',
+      userId: users[0].id
     }
 
     await api
