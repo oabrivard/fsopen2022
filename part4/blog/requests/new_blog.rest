@@ -1,9 +1,10 @@
 POST http://localhost:3003/api/blogs
 content-type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im9hYnJpdmFyZCIsImlkIjoiNjI1YzViMGE1YmE5YmJjNmJlMmFhNzk2IiwiaWF0IjoxNjUwMjIxMjg1LCJleHAiOjE2NTAyMjQ4ODV9.tiQrlJpBv1uuiUzF_jBjB-XXqJPKx8vcTXP-hpcTYsU
 
 {
-    "title": "Nauges",
-    "author": "Louis Nauges",
-    "url": "https://nauges.typepad.com/",
-    "likes": 5
+  "title": "Nauges",
+  "author": "Louis Nauges",
+  "url": "https://nauges.typepad.com/",
+  "likes": 5
 }

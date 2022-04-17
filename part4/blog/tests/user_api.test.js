@@ -59,6 +59,88 @@ describe('when there is initially one user in db', () => {
     expect(usersAtEnd).toEqual(usersAtStart)
   })
 
+  test('creation fails with proper statuscode and message if no username given', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      name: 'Superuser',
+      password: 'root',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('User validation failed: username: Path `username` is required.')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd).toEqual(usersAtStart)
+  })
+
+  test('creation fails with proper statuscode and message if username is less than 3 chars', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'su',
+      name: 'Superuser',
+      password: 'root',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('User validation failed: username: Path `username` (`su`) is shorter than the minimum allowed length (3).')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd).toEqual(usersAtStart)
+  })
+
+  test('creation fails with proper statuscode and message if no password given', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'root',
+      name: 'Superuser',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('password missing')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd).toEqual(usersAtStart)
+  })
+
+  test('creation fails with proper statuscode and message if password is less than 3 chars', async () => {
+    const usersAtStart = await helper.usersInDb()
+
+    const newUser = {
+      username: 'root',
+      name: 'Superuser',
+      password: 'su',
+    }
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body.error).toContain('password must contain at least 3 characters')
+
+    const usersAtEnd = await helper.usersInDb()
+    expect(usersAtEnd).toEqual(usersAtStart)
+  })
+
   afterAll(() => {
     mongoose.connection.close()
   })

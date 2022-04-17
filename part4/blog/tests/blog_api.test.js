@@ -13,7 +13,7 @@ beforeEach(async () => {
   await Promise.all(promiseArray)
 
   await User.deleteMany({})
-  const user = new User({ username: 'test' })
+  const user = new User(helper.initialUser)
   await user.save()
 })
 
@@ -48,8 +48,7 @@ describe('when there is initially some blogs saved', () => {
 describe('viewing a specific blog', () => {
   test('succeeds with a valid id', async () => {
     const blogsAtStart = await helper.blogsInDb()
-
-    const blogToView = blogsAtStart[0]
+    const blogToView = JSON.parse(JSON.stringify(blogsAtStart[0]))
 
     const resultBlog = await api
       .get(`/api/blogs/${blogToView.id}`)
@@ -77,6 +76,26 @@ describe('viewing a specific blog', () => {
 })
 
 describe('addition of a new blog', () => {
+  test('unauthenticated post is not allowed', async () => {
+    const users = await helper.usersInDb()
+
+    const newBlog = {
+      title: 'Nauges',
+      author: 'Louis Nauges',
+      url: 'https://nauges.typepad.com/',
+      likes: 5,
+      userId: users[0].id
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+  })
+
   test('a valid blog can be added', async () => {
     const users = await helper.usersInDb()
 
@@ -90,6 +109,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${helper.validTokenForUser(helper.initialUser)}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -113,6 +133,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${helper.validTokenForUser(helper.initialUser)}`)
       .send(newBlog)
       .expect(400)
 
@@ -130,6 +151,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${helper.validTokenForUser(helper.initialUser)}`)
       .send(newBlog)
       .expect(400)
 
@@ -150,6 +172,7 @@ describe('addition of a new blog', () => {
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `bearer ${helper.validTokenForUser(helper.initialUser)}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -165,10 +188,11 @@ describe('addition of a new blog', () => {
 describe('deletion of a blog', () => {
   test('succeeds with status code 204 if id is valid', async () => {
     const blogsAtStart = await helper.blogsInDb()
-    const blogToDelete = blogsAtStart[0]
+    const blogToDelete = JSON.parse(JSON.stringify(blogsAtStart[0]))
 
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `bearer ${helper.validTokenForUser(helper.initialUser)}`)
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -176,6 +200,39 @@ describe('deletion of a blog', () => {
 
     const titles = blogsAtEnd.map(b => b.title)
     expect(titles).not.toContain(blogToDelete.title)
+  })
+
+  test('fails with status code 401 if token is invalid', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = JSON.parse(JSON.stringify(blogsAtStart[0]))
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', 'bearer 0000')
+      .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+  })
+
+  test('fails with status code 401 if user tries to delete a blog not creeated by himself', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = JSON.parse(JSON.stringify(blogsAtStart[0]))
+
+    const user = new User({
+      username: 'invalid',
+      name: 'Olivier Abrivard',
+      passwordHash: '2b$10$G/o4d2b9lA.yJmM95z5BL.Qeh73sX/ZJG2a3GxgB8YIa2fFTWCR/W',
+    })
+    await user.save()
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `bearer ${helper.validTokenForUser(user)}`)
+      .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
   })
 })
 
