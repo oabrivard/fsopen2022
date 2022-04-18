@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
+import BlogForm from './components/BlogForm'
+import LoginForm from './components/LoginForm'
+import Togglable from './components/Toggable'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -28,12 +31,8 @@ const Notification = ({ notification }) => {
 const App = () => {
   const [notification, setNotification] = useState(null)
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const [title, setTitle] = useState('')
-  const [author, setAuthor] = useState('')
-  const [url, setUrl] = useState('')
+  const toggableBlogFormRef = useRef()
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -48,7 +47,7 @@ const App = () => {
       setUser(loggedUser)
       blogService.setToken(loggedUser.token)
     }
-  }, [])  
+  }, [])
 
   const displayNotification = (newNotification) => {
     setNotification(newNotification)
@@ -57,56 +56,74 @@ const App = () => {
     }, 5000)
   }
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
-
+  const handleLogin = async (credentials) => {
     try {
-      const loggedUser = await loginService.login({
-        username, password,
-      })
-      window.localStorage.setItem('loggedUser', JSON.stringify(loggedUser))       
+      const loggedUser = await loginService.login(credentials)
+      window.localStorage.setItem('loggedUser', JSON.stringify(loggedUser))
       blogService.setToken(loggedUser.token)
       setUser(loggedUser)
-      setUsername('')
-      setPassword('')
+      return true
     } catch (exception) {
       displayNotification({ color: 'red', message: 'Wrong credentials' })
+      return false
     }
   }
 
   const handleLogout = (event) => {
     event.preventDefault()
 
-    window.localStorage.removeItem('loggedUser')       
+    window.localStorage.removeItem('loggedUser')
     blogService.setToken(null)
     setUser(null)
-    setUsername('')
-    setPassword('')
   }
 
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        username
-        <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-        />
-      </div>
-      <div>
-        password
-        <input
-          type="password"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
-      </div>
-      <button type="submit">login</button>
-    </form>
-  )
+  const addBlog = async (blog) => {
+    try {
+      const newBlog = await blogService.create(blog)
+      setBlogs(blogs.concat(newBlog))
+      toggableBlogFormRef.current.toggleVisibility()
+      displayNotification({ color: 'green', message: 'blog created' })
+      return true
+    } catch (exception) {
+      console.log(exception)
+      displayNotification({ color: 'red', message: JSON.stringify(exception.response.data.error) })
+      return false
+    }
+  }
+
+  const updateBlog = async (blog) => {
+    try {
+      const data = {
+        user: blog.user.id,
+        likes: blog.likes,
+        author: blog.author,
+        title: blog.title,
+        url: blog.url
+      }
+      const updatedBlog = await blogService.update(blog.id, data)
+      setBlogs(blogs.filter(b => b.id !== blog.id).concat(updatedBlog))
+      return true
+    } catch (exception) {
+      console.log(exception)
+      displayNotification({ color: 'red', message: JSON.stringify(exception.response.data.error) })
+      return false
+    }
+  }
+
+  const deleteBlog = async (blog) => {
+    if (window.confirm(`Delete blog ${blog.title} ?`)) {
+      try {
+        await blogService.remove(blog)
+        setBlogs(blogs.filter(b => b.id !== blog.id))
+        displayNotification({ color: 'green', message: 'blog deleted' })
+        return true
+      } catch (exception) {
+        console.log(exception)
+        displayNotification({ color: 'red', message: JSON.stringify(exception.response.data.error) })
+        return false
+      }
+    }
+  }
 
   const userForm = () => (
     <form onSubmit={handleLogout}>
@@ -117,45 +134,25 @@ const App = () => {
     </form>
   )
 
-
-  const addBlog = async (event) => {
-    event.preventDefault()
-
-    try {
-      const newBlog = await blogService.create({ title, author, url })
-      setTitle('')
-      setAuthor('')
-      setUrl('')
-      setBlogs(blogs.concat(newBlog))
-      displayNotification({ color: 'green', message: 'blog created' })
-    } catch (exception) {
-      displayNotification({ color: 'red', message: JSON.stringify(exception.response.data.error) })
-    }
-  }
-
-  const createBlogForm = () => (
-    <form onSubmit={addBlog}>
-      Title <input value={title} onChange={({ target }) => setTitle(target.value)} /><br/>
-      Author <input value={author} onChange={({ target }) => setAuthor(target.value)} /><br/>
-      Url <input value={url} onChange={({ target }) => setUrl(target.value)} /><br/>
-      <button type="submit">create</button>
-    </form>  
-  )
-
   const blogList = () => (
-    blogs.map(blog =><Blog key={blog.id} blog={blog} />)
+    [...blogs]
+      .sort((b1, b2) => b2.likes - b1.likes)
+      .map(blog => <Blog key={blog.id} blog={blog} updateBlog={updateBlog} userId={blog.user ? blog.user.id : null} deleteBlog={deleteBlog} />)
   )
 
   return (
     <div>
       <h2>blogs</h2>
       <Notification notification={notification} />
-      {user === null ? loginForm() :
+      {user === null ?
+        <LoginForm handleLogin={handleLogin} /> :
         <div>
           {userForm()}
+          <Togglable buttonLabel='create' ref={toggableBlogFormRef}>
+            <BlogForm addBlog={addBlog} />
+          </Togglable>
+          <br />
           {blogList()}
-          <h2>create new</h2>
-          {createBlogForm()}
         </div>
       }
     </div>
