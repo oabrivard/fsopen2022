@@ -14,12 +14,12 @@ describe('<BlogForm />', () => {
     const titleInput = container.querySelector('#title-input')
     const authorInput = container.querySelector('#author-input')
     const urlInput = container.querySelector('#url-input')
-    const createButton = screen.getByText('create')
+    const saveButton = screen.getByText('save')
 
     await user.type(titleInput, 'a blog title')
     await user.type(authorInput, 'the blog author')
     await user.type(urlInput, 'the blog url')
-    await user.click(createButton)
+    await user.click(saveButton)
 
     expect(addBlog.mock.calls).toHaveLength(1)
     expect(addBlog.mock.calls[0][0].title).toBe('a blog title')
