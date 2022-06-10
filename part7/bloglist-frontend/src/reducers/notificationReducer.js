@@ -20,6 +20,7 @@ export const { addNotification, removeNotification } = notificationSlice.actions
 
 export const setNotification = (message, color, duration = 5) => {
   return (dispatch) => {
+    console.log('dispatch = ')
     if (timeoutID >= 0) {
       clearTimeout(timeoutID)
       timeoutID = -1

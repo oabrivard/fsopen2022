@@ -4,7 +4,7 @@ const Notification = () => {
   const notification = useSelector(state => state.notification)
 
   const style = {
-    color: notification.color,
+    color: notification ? notification.color : 'green',
     background: 'lightgrey',
     fontSize: 20,
     borderStyle: 'solid',

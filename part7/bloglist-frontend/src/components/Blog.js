@@ -1,6 +1,20 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { vote, removeBlog } from '../reducers/blogReducer'
 
-const BlogDetails = ({ userName, blog, incrementLikes, deleteBlog }) => {
+const BlogDetails = ({ userName, blog }) => {
+  const dispatch = useDispatch()
+
+  const incrementLikes = () => {
+    dispatch(vote(blog))
+  }
+
+  const deleteBlog = () => {
+    if (window.confirm(`Delete blog ${blog.title} ?`)) {
+      dispatch(removeBlog(blog))
+    }
+  }
+
   return (<>
     <div>
       {blog.url}<br />
@@ -10,7 +24,7 @@ const BlogDetails = ({ userName, blog, incrementLikes, deleteBlog }) => {
   </>)
 }
 
-const Blog = ({ userName, blog, updateBlog, deleteBlog }) => {
+const Blog = ({ userName, blog }) => {
   const [showDetail, setShowDetail] = useState(false)
 
   const blogStyle = {
@@ -21,16 +35,11 @@ const Blog = ({ userName, blog, updateBlog, deleteBlog }) => {
     marginBottom: 5
   }
 
-  const incrementLikes = () => {
-    const updatedBlog = { ...blog, likes: blog.likes + 1 }
-    updateBlog(updatedBlog)
-  }
-
   const simpleView = () => (<button onClick={() => setShowDetail(true)}>view</button>)
 
   const detailedView = () => (<>
     <button onClick={() => setShowDetail(false)}>hide</button>
-    <BlogDetails userName={userName} blog={blog} incrementLikes={incrementLikes} deleteBlog={deleteBlog} />
+    <BlogDetails userName={userName} blog={blog} />
   </>)
 
   return (
