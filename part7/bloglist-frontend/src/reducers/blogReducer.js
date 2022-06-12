@@ -10,8 +10,7 @@ const blogSlice = createSlice({
       state.push(action.payload) // mutating state allowed here
     },
     updateBlog(state, action) {
-      let blogToUpdate = state.find(b => b.id===action.payload.id)
-      blogToUpdate.likes += 1 // mutating state allowed here
+      return state.filter(b => b.id !== action.payload.id).concat(action.payload)
     },
     deleteBlog(state, action) {
       return state.filter(b => b.id !== action.payload.id)
@@ -69,6 +68,19 @@ export const vote = blog => {
       dispatch(updateBlog(updatedBlog))
     } catch (exception) {
       dispatch(setNotification(JSON.stringify(exception.response.data.error), 'red'))
+    }
+  }
+}
+
+export const addComment = (blog, comment) => {
+  return async dispatch => {
+    try {
+      const updatedBlog = await blogService.addComment(blog.id, comment)
+      dispatch(updateBlog(updatedBlog))
+      return true
+    } catch (exception) {
+      dispatch(setNotification(JSON.stringify(exception.response.data.error), 'red'))
+      return false
     }
   }
 }
