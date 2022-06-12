@@ -1,21 +1,22 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Routes, Route, Link } from 'react-router-dom'
 import Notification from './components/Notification'
+import UserList from './components/UserList'
+import User from './components/User'
+import BlogList from './components/BlogList'
 import Blog from './components/Blog'
-import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
-import Togglable from './components/Toggable'
 import { initializeBlogs } from './reducers/blogReducer'
-import { setUser, login, logout } from './reducers/userReducer'
+import { initializeUsers, setUser, login, logout } from './reducers/userReducer'
 
 const App = () => {
   const dispatch = useDispatch()
-  const blogs = useSelector((state) => state.blogs)
-  const user = useSelector((state) => state.user)
-  const toggableBlogFormRef = useRef()
+  const user = useSelector((state) => state.users.user)
 
   useEffect(() => {
     dispatch(initializeBlogs())
+    dispatch(initializeUsers())
   }, [dispatch])
 
   useEffect(() => {
@@ -39,39 +40,40 @@ const App = () => {
   }
 
   const userForm = () => (
-    <form onSubmit={handleLogout}>
-      <p>
-        {user.name} logged-in
-        <button type='submit'>logout</button>
-      </p>
+    <form onSubmit={handleLogout} style={{ display: 'inline' }}>
+      {user.name} logged-in
+      <button type='submit'>logout</button>
     </form>
   )
 
-  const blogList = () =>
-    [...blogs]
-      .sort((b1, b2) => b2.likes - b1.likes)
-      .map((blog) => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          userName={user ? user.username : null}
-        />
-      ))
+  const padding = {
+    paddingRight: 5
+  }
+
+  const menu = {
+    backgroundColor: 'grey'
+  }
 
   return (
     <div>
-      <h2>blogs</h2>
-      <Notification />
       {user === null ? (
         <LoginForm handleLogin={handleLogin} />
       ) : (
         <div>
-          {userForm()}
-          <Togglable buttonLabel='create' ref={toggableBlogFormRef}>
-            <BlogForm />
-          </Togglable>
+          <div style={menu}>
+            <Link style={padding} to="/">blogs</Link>
+            <Link style={padding} to="/users">users</Link>
+            {userForm()}
+          </div>
+          <h2>blogs</h2>
+          <Notification />
           <br />
-          {blogList()}
+          <Routes>
+            <Route path="/blogs/:id" element={<Blog />} />
+            <Route path="/users/:id" element={<User />} />
+            <Route path="/users" element={<UserList />} />
+            <Route path="/" element={<BlogList />} />
+          </Routes>
         </div>
       )}
     </div>

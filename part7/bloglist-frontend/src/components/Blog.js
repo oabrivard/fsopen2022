@@ -1,9 +1,13 @@
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { useParams, useNavigate } from 'react-router-dom'
 import { vote, removeBlog } from '../reducers/blogReducer'
 
-const BlogDetails = ({ userName, blog }) => {
+const Blog = () => {
+  const id = useParams().id
+  const blog = useSelector((state) => state.blogs ? state.blogs.find(e => e.id === id) : null)
   const dispatch = useDispatch()
+  const user = useSelector((state) => state.users.user)
+  const navigate = useNavigate()
 
   const incrementLikes = () => {
     dispatch(vote(blog))
@@ -12,42 +16,19 @@ const BlogDetails = ({ userName, blog }) => {
   const deleteBlog = () => {
     if (window.confirm(`Delete blog ${blog.title} ?`)) {
       dispatch(removeBlog(blog))
+      navigate('/')
     }
   }
 
-  return (<>
-    <div>
-      {blog.url}<br />
-      likes {blog.likes} {(blog.user) ? <button onClick={incrementLikes}>like</button> : <></>}
-    </div>
-    {(blog.user && blog.user.username === userName) ? <button onClick={() => deleteBlog(blog)}>delete</button> : <></>}
-  </>)
-}
-
-const Blog = ({ userName, blog }) => {
-  const [showDetail, setShowDetail] = useState(false)
-
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
-
-  const simpleView = () => (<button onClick={() => setShowDetail(true)}>view</button>)
-
-  const detailedView = () => (<>
-    <button onClick={() => setShowDetail(false)}>hide</button>
-    <BlogDetails userName={userName} blog={blog} />
-  </>)
-
   return (
-    <div style={blogStyle} className='blog'>
+    <div>
+      <h2>{blog.title} by {blog.author}</h2>
       <div>
-        {blog.title}<br />
-        {blog.author} {showDetail ? detailedView() : simpleView()}
+        <a href={blog.url} rel='noreferrer' target='_blank'>{blog.url}</a><br />
+        likes {blog.likes} {(blog.user) ? <button onClick={incrementLikes}>like</button> : <></>}
       </div>
+      {(blog.user && blog.user.username === user.username) ? <button onClick={() => deleteBlog(blog)}>delete</button> : <></>}
+      {blog.user ? <div>added by {blog.user.username}</div> : <></>}
     </div>
   )
 }
