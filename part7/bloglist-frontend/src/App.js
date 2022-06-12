@@ -8,7 +8,7 @@ import BlogList from './components/BlogList'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import { initializeBlogs } from './reducers/blogReducer'
-import { initializeUsers, setUser, login, logout } from './reducers/userReducer'
+import { setUser, login, logout } from './reducers/userReducer'
 
 const App = () => {
   const dispatch = useDispatch()
@@ -16,7 +16,6 @@ const App = () => {
 
   useEffect(() => {
     dispatch(initializeBlogs())
-    dispatch(initializeUsers())
   }, [dispatch])
 
   useEffect(() => {
