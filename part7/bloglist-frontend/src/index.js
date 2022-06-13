@@ -6,11 +6,14 @@ import {
 import { Provider } from 'react-redux'
 import store from './store'
 import App from './App'
+import { Container } from 'semantic-ui-react'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <Router>
-      <App />
+      <Container style={{ marginTop: '3em' }}>
+        <App />
+      </Container>
     </Router>
   </Provider>
 )

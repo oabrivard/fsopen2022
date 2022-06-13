@@ -9,6 +9,7 @@ import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import { initializeBlogs } from './reducers/blogReducer'
 import { setUser, login, logout } from './reducers/userReducer'
+import { Menu, Button } from 'semantic-ui-react'
 
 const App = () => {
   const dispatch = useDispatch()
@@ -40,18 +41,9 @@ const App = () => {
 
   const userForm = () => (
     <form onSubmit={handleLogout} style={{ display: 'inline' }}>
-      {user.name} logged-in
-      <button type='submit'>logout</button>
+      {user.name} logged-in <Button type='submit' compact>logout</Button>
     </form>
   )
-
-  const padding = {
-    paddingRight: 5
-  }
-
-  const menu = {
-    backgroundColor: 'grey'
-  }
 
   return (
     <div>
@@ -59,12 +51,11 @@ const App = () => {
         <LoginForm handleLogin={handleLogin} />
       ) : (
         <div>
-          <div style={menu}>
-            <Link style={padding} to="/">blogs</Link>
-            <Link style={padding} to="/users">users</Link>
-            {userForm()}
-          </div>
-          <h2>blogs</h2>
+          <Menu>
+            <Menu.Item as={Link} to='/'>blogs</Menu.Item>
+            <Menu.Item as={Link} to='/users'>users</Menu.Item>
+            <Menu.Item>{userForm()}</Menu.Item>
+          </Menu>
           <Notification />
           <br />
           <Routes>
