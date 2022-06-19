@@ -5,7 +5,6 @@ import { ALL_AUTHORS, EDIT_AUTHOR } from '../queries'
 
 const BirthForm = ({ authors }) => {
   const [selectedOption, setSelectedOption] = useState(null)
-  const [name, setName] = useState('')
   const [born, setBorn] = useState('')
 
   const [editAuthor] = useMutation(EDIT_AUTHOR)
@@ -17,8 +16,6 @@ const BirthForm = ({ authors }) => {
       variables: { name: selectedOption.value, setBornTo: parseInt(born, 10) },
     })
     console.log('update author : ', result)
-
-    setName('')
     setBorn('')
   }
 
