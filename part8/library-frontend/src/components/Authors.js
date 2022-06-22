@@ -70,8 +70,7 @@ const Authors = (props) => {
           ))}
         </tbody>
       </table>
-      <h3>set birth year</h3>
-      <BirthForm authors={authors} />
+      {props.token ? <><h3>set birth year</h3><BirthForm authors={authors} /></> : <></>}
     </div>
   )
 }

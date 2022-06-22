@@ -10,6 +10,7 @@ const Book = require('./models/book')
 const Author = require('./models/author')
 const User = require('./models/user')
 const jwt = require('jsonwebtoken')
+const book = require('./models/book')
 
 require('dotenv').config()
 
@@ -85,7 +86,8 @@ const resolvers = {
       const booksByAuthor = args.author ? books.filter(b => b.author === args.author) : books
       return args.genre ? booksByAuthor.filter(b => b.genres.includes(args.genre)) : booksByAuthor
       */
-      return args.genre ? Book.find({ genres: args.genre }) : Book.find({})
+      const books = args.genre ? Book.find({ genres: args.genre }) : Book.find({})
+      return books.populate('author')
     },
     allAuthors: async () => Author.find({}),
     me: (root, args, context) => context.currentUser,
