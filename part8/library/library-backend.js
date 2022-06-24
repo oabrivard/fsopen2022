@@ -1,16 +1,23 @@
+const { ApolloServer } = require('apollo-server-express')
+const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const express = require('express')
+const http = require('http')
 const {
-  ApolloServer,
   UserInputError,
   AuthenticationError,
   gql,
 } = require('apollo-server')
 const { v1: uuid } = require('uuid')
+const { execute, subscribe } = require('graphql')
+const { SubscriptionServer } = require('subscriptions-transport-ws')
 const mongoose = require('mongoose')
 const Book = require('./models/book')
 const Author = require('./models/author')
 const User = require('./models/user')
 const jwt = require('jsonwebtoken')
-const book = require('./models/book')
+const { PubSub } = require('graphql-subscriptions')
+const pubsub = new PubSub()
 
 require('dotenv').config()
 
@@ -75,6 +82,10 @@ const typeDefs = gql`
     allAuthors: [Author]!
     me: User
   }
+
+  type Subscription {
+    bookAdded: Book!
+  }  
 `
 
 const resolvers = {
@@ -89,7 +100,7 @@ const resolvers = {
       const books = args.genre ? Book.find({ genres: args.genre }) : Book.find({})
       return books.populate('author')
     },
-    allAuthors: async () => Author.find({}),
+    allAuthors: async () => Author.find({}).populate('books'),
     me: (root, args, context) => context.currentUser,
   },
   Mutation: {
@@ -113,12 +124,18 @@ const resolvers = {
       })
 
       try {
-        await book.save()
+        const newBook = await book.save()
+        author.books.push(newBook)
+        await author.save()
       } catch (error) {
+        console.log(error)
         throw new UserInputError(error.message, {
           invalidArgs: args,
         })
       }
+
+      pubsub.publish('BOOK_ADDED', { bookAdded: book })
+
       return book
     },
     editAuthor: async (root, args, context) => {
@@ -165,11 +182,80 @@ const resolvers = {
       return { value: jwt.sign(userForToken, process.env.SECRET) }
     },
   },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
+    },
+  },
   Author: {
-    bookCount: (root) => 0, //books.filter(b => b.author === root.name).length
+    bookCount: async (root) => {
+      return root.books.length
+      //const books = await Book.find({ author: root._id })
+      //return books && books.length ? books.length : 0
+    }, //books.filter(b => b.author === root.name).length
   },
 }
 
+const start = async () => {
+  const app = express()
+  const httpServer = http.createServer(app)
+
+  const schema = makeExecutableSchema({ typeDefs, resolvers })
+
+  const subscriptionServer = SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+    },
+    {
+      server: httpServer,
+      path: '',
+    }
+  )
+
+  const server = new ApolloServer({
+    schema,
+    context: async ({ req }) => {
+      const auth = req ? req.headers.authorization : null
+      if (auth && auth.toLowerCase().startsWith('bearer ')) {
+        const decodedToken = jwt.verify(auth.substring(7), process.env.SECRET)
+        const currentUser = await User.findById(decodedToken.id)
+        return { currentUser }
+      }
+    },
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              subscriptionServer.close()
+            },
+          }
+        },
+      }
+    ],
+  })
+
+  await server.start()
+
+  server.applyMiddleware({
+    app,
+    path: '/',
+  })
+
+  const PORT = 4000
+
+  httpServer.listen(PORT, () =>
+    console.log(`Server is now running on http://localhost:${PORT}`)
+  )
+}
+
+// call the function that does the setup and starts the server
+start()
+
+/*
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -186,3 +272,4 @@ const server = new ApolloServer({
 server.listen().then(({ url }) => {
   console.log(`Server ready at ${url}`)
 })
+*/
