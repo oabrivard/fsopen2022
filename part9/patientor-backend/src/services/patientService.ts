@@ -1,29 +1,41 @@
 import patientData from '../../data/patients.json';
-import { NonSensitivePatientEntry, NewPatientEntry, PatientEntry } from '../types';
+import { NonSensitivePatient, NewPatient, Patient } from '../types';
 import {v4 as uuidv4} from 'uuid';
-import toNewPatientEntry from "../utils";
+import toNewPatient from "../utils";
 
-const getEntries = (): NonSensitivePatientEntry[] => {
+const getPatients = (): NonSensitivePatient[] => {
   //return patientData.map(({id, name, dateOfBirth, gender, occupation}) => ({id, name, dateOfBirth, gender, occupation}));
   return patientData.map(obj => {
-    const object = toNewPatientEntry(obj) as PatientEntry;
+    const object = toNewPatient(obj) as Patient;
     object.id = obj.id;
     return object;
   });
 };
 
-const addPatient = ( entry: NewPatientEntry ): PatientEntry => {
+const getPatient = (id: string): NonSensitivePatient => {
+  const fields = patientData.find(p => p.id===id);
+  if (!fields) {
+    throw new Error('Incorrect patient ID ' + id);
+  }
+
+  const object = toNewPatient(fields) as Patient;
+  object.id = id;
+  return object;
+};
+
+const addPatient = ( entry: NewPatient ): Patient => {
   const id = uuidv4();
 
-  const newPatientEntry = {
+  const newPatient = {
     id,
     ...entry
   };
 
-  patientData.push(newPatientEntry);
-  return newPatientEntry;
+  patientData.push(newPatient);
+  return newPatient;
 };
 export default {
-  getEntries,
+  getPatients,
+  getPatient,
   addPatient
 };
