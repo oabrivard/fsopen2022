@@ -1,0 +1,126 @@
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { apiBaseUrl } from "../constants";
+import { Patient, Gender, Entry, HealthCheckEntry, HospitalEntry, OccupationalHealthcareEntry, HealthCheckRating } from "../types";
+import { useStateValue, setLastPatient } from "../state";
+import MaleIcon from "@mui/icons-material/Male";
+import FemaleIcon from "@mui/icons-material/Female";
+import TransgenderIcon from "@mui/icons-material/Transgender";
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
+}
+
+const PatientPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const [{ lastPatient, diagnoses }, dispatch] = useStateValue();
+
+  useEffect(() => {
+    const fetchPatient = async () => {
+      try {
+        if (!id) {
+          throw new Error('Missing id');
+        }
+
+        if (lastPatient?.id === id) {
+          console.log(`fetched patient ${id} from cache`);
+          return;
+        }
+
+        const { data: patientFromApi } = await axios.get<Patient>(
+          `${apiBaseUrl}/patients/${id}`
+        );
+        dispatch(setLastPatient(patientFromApi));
+        console.log(`fetched patient ${id} from server`);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    void fetchPatient();
+  }, [dispatch]);
+
+  const entryStyle = {
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 5,
+    marginBottom: 10
+  };
+
+  const genderIcon = (gender: Gender) => {
+    switch (gender) {
+      case Gender.Male:
+        return <MaleIcon />;
+      case Gender.Female:
+        return <FemaleIcon />;
+      case Gender.Other:
+        return <TransgenderIcon />;
+      default:
+        assertNever(gender);
+    }
+  };
+
+  const DiagnosisCodes = ({ codes }: { codes: string[] | undefined }) => codes ? <ul>
+    {codes.map(c => <li key={c}>{c} - {diagnoses[c].name}</li>)}
+  </ul> : null;
+
+  const Hospital = ({ entry }: { entry: HospitalEntry }) => <div>discharge : {entry.discharge.criteria} ({entry.discharge.date})</div>;
+
+  const OccupationalHealthcare = ({ entry }: { entry: OccupationalHealthcareEntry }) => <div>
+    <div>employed by {entry.employerName}</div>
+    {entry.sickLeave ? <div>{`on leave from ${entry.sickLeave.startDate} to ${entry.sickLeave.endDate}`}</div> : null}
+  </div>;
+
+  const getHealthCheckRating = (healthCheckRating: HealthCheckRating) => {
+    switch (healthCheckRating) {
+      case HealthCheckRating.Healthy:
+        return "Healthy";
+      case HealthCheckRating.LowRisk:
+        return "LowRisk";
+      case HealthCheckRating.HighRisk:
+        return "HighRisk";
+      case HealthCheckRating.CriticalRisk:
+        return "CriticalRisk";
+      default:
+        assertNever(healthCheckRating);
+    }
+  };
+
+  const HealthCheck = ({ entry }: { entry: HealthCheckEntry }) => <div>{getHealthCheckRating(entry.healthCheckRating)}</div>;
+
+  const EntryDetails = ({ entry }: { entry: Entry }) => {
+    switch (entry.type) {
+      case "HealthCheck":
+        return <HealthCheck entry={entry} />;
+      case "Hospital":
+        return <Hospital entry={entry} />;
+      case "OccupationalHealthcare":
+        return <OccupationalHealthcare entry={entry} />;
+      default:
+        assertNever(entry);
+    }
+  };
+
+  const Entries = ({ entries }: { entries: Entry[] }) => <div>
+    <h3>entries</h3>
+    {entries.map(e => <div key={e.id} style={entryStyle}>
+      <p>{e.date} - {e.description}</p>
+      <EntryDetails entry={e} />
+      <DiagnosisCodes codes={e.diagnosisCodes} />
+      diagnosed by {e.specialist}
+    </div>)}
+  </div>;
+
+  if (!lastPatient) return null;
+
+  return (
+    <div>
+      <h2>{lastPatient.name} {genderIcon(lastPatient.gender)}</h2>
+      <div>ssn: {lastPatient.ssn}</div>
+      <div>occupation: {lastPatient.occupation}</div>
+      {lastPatient.entries && lastPatient.entries.length > 0 ? <Entries entries={lastPatient.entries} /> : null}
+    </div>
+  );
+};
+
+export default PatientPage;

@@ -1,26 +1,20 @@
-import patientData from '../../data/patients.json';
+import patientData from '../../data/patients';
 import { NonSensitivePatient, NewPatient, Patient } from '../types';
 import {v4 as uuidv4} from 'uuid';
-import toNewPatient from "../utils";
+import {toNonSensitivePatient} from "../utils";
 
 const getPatients = (): NonSensitivePatient[] => {
   //return patientData.map(({id, name, dateOfBirth, gender, occupation}) => ({id, name, dateOfBirth, gender, occupation}));
-  return patientData.map(obj => {
-    const object = toNewPatient(obj) as Patient;
-    object.id = obj.id;
-    return object;
-  });
+  return patientData.map(p => toNonSensitivePatient(p));
 };
 
-const getPatient = (id: string): NonSensitivePatient => {
-  const fields = patientData.find(p => p.id===id);
-  if (!fields) {
+const getPatient = (id: string): Patient => {
+  const patient = patientData.find(p => p.id===id);
+  if (!patient) {
     throw new Error('Incorrect patient ID ' + id);
   }
 
-  const object = toNewPatient(fields) as Patient;
-  object.id = id;
-  return object;
+  return patient;
 };
 
 const addPatient = ( entry: NewPatient ): Patient => {

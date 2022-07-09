@@ -1,4 +1,4 @@
-import { NewPatient, Gender } from './types';
+import { NewPatient, Gender, Patient, NonSensitivePatient } from './types';
 
 const isString = (text: unknown): text is string => {
   return typeof text === 'string' || text instanceof String;
@@ -38,7 +38,7 @@ const parseGender = (gender: unknown): Gender => {
 
 type Fields = { name : unknown, dateOfBirth: unknown, ssn: unknown, gender: unknown, occupation: unknown };
 
-const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: Fields): NewPatient => {
+export const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: Fields): NewPatient => {
   const newEntry: NewPatient = {
     name: parseString(name,'name'),
     dateOfBirth: parseDate(dateOfBirth,'dateOfBirth'),
@@ -51,4 +51,8 @@ const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: Fields): N
   return newEntry;
 };
 
-export default toNewPatient;
+export const toNonSensitivePatient = (patient: Patient): NonSensitivePatient => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const {ssn, entries, ...nonSensitivePatient} = patient;
+  return nonSensitivePatient as NonSensitivePatient;
+};
