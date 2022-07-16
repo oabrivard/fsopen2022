@@ -64,7 +64,7 @@ const isHealthCheckRating = (param: any): param is HealthCheckRating => {
 };
 
 const parseHealthCheckRating = (healthCheckRating: unknown): HealthCheckRating => {
-  if (!healthCheckRating || !isHealthCheckRating(healthCheckRating)) {
+  if (!isHealthCheckRating(healthCheckRating)) {
       throw new Error('Incorrect or missing healthCheckRating: ' + healthCheckRating);
   }
   return healthCheckRating;
@@ -76,7 +76,7 @@ export const toNewEntry = (data: unknown) : EntryWithoutId => {
   const sharedProps = {
     id: "",
     description: parseString(newEntry.description,'description'),
-    date: parseString(newEntry.date,'date'),
+    date: parseDate(newEntry.date,'date'),
     specialist: parseString(newEntry.specialist,'specialist'),
     diagnosisCodes: newEntry.diagnosisCodes
   };

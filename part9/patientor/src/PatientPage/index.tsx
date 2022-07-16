@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { apiBaseUrl } from "../constants";
@@ -7,6 +7,9 @@ import { useStateValue, setLastPatient } from "../state";
 import MaleIcon from "@mui/icons-material/Male";
 import FemaleIcon from "@mui/icons-material/Female";
 import TransgenderIcon from "@mui/icons-material/Transgender";
+import { Button } from "@material-ui/core";
+import AddEntryModal from "../AddEntryModal";
+import { EntryFormValues } from "../AddEntryModal/AddEntryForm";
 
 function assertNever(value: never): never {
   throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
@@ -15,6 +18,36 @@ function assertNever(value: never): never {
 const PatientPage = () => {
   const { id } = useParams<{ id: string }>();
   const [{ lastPatient, diagnoses }, dispatch] = useStateValue();
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
+
+  const openModal = (): void => setModalOpen(true);
+
+  const closeModal = (): void => {
+    setModalOpen(false);
+    setError(undefined);
+  };
+
+  const submitNewEntry = async (values: EntryFormValues) => {
+    try {
+      if (!id || !lastPatient) return;
+
+      const { data: newEntry } = await axios.post<HealthCheckEntry>(
+        `${apiBaseUrl}/patients/${id}/entries`,
+        values
+      );
+      lastPatient.entries.push(newEntry);
+      closeModal();
+    } catch (e: unknown) {
+      if (axios.isAxiosError(e)) {
+        console.error(e?.response?.data || "Unrecognized axios error");
+        setError(String(e?.response?.data) || "Unrecognized axios error");
+      } else {
+        console.error("Unknown error", e);
+        setError("Unknown error");
+      }
+    }
+  };  
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -119,6 +152,15 @@ const PatientPage = () => {
       <div>ssn: {lastPatient.ssn}</div>
       <div>occupation: {lastPatient.occupation}</div>
       {lastPatient.entries && lastPatient.entries.length > 0 ? <Entries entries={lastPatient.entries} /> : null}
+      <AddEntryModal
+        modalOpen={modalOpen}
+        onSubmit={submitNewEntry}
+        error={error}
+        onClose={closeModal}
+      />
+      <Button variant="contained" onClick={() => openModal()}>
+        Add New Entry
+      </Button>
     </div>
   );
 };
