@@ -1,0 +1,15 @@
+POST http://localhost:3001/api/patients/d2773336-f723-11e9-8f0b-362b9e155667/entries
+content-type: application/json
+
+{
+  "type": "OccupationalHealthcare",
+  "description": "a description",
+  "date": "2022-07-12",
+  "specialist": "a specialist",
+  "diagnosisCodes": ["M51.2","J10.1"],
+  "employerName": "an employee",
+  "sickLeave": {
+    "startDate" : "2022-07-10",
+    "endDate": "2022-07-12"
+  }
+}

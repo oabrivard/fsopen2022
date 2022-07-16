@@ -1,4 +1,4 @@
-import { NewPatient, Gender, Patient, NonSensitivePatient } from './types';
+import { NewPatient, Gender, Patient, NonSensitivePatient, EntryWithoutId, HealthCheckRating } from './types';
 
 const isString = (text: unknown): text is string => {
   return typeof text === 'string' || text instanceof String;
@@ -36,10 +36,10 @@ const parseGender = (gender: unknown): Gender => {
   return gender;
 };
 
-type Fields = { name : unknown, dateOfBirth: unknown, ssn: unknown, gender: unknown, occupation: unknown };
+type NewPatientFields = { name : unknown, dateOfBirth: unknown, ssn: unknown, gender: unknown, occupation: unknown };
 
-export const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: Fields): NewPatient => {
-  const newEntry: NewPatient = {
+export const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: NewPatientFields): NewPatient => {
+  const newPatient: NewPatient = {
     name: parseString(name,'name'),
     dateOfBirth: parseDate(dateOfBirth,'dateOfBirth'),
     ssn: parseString(ssn,'ssn'),
@@ -48,11 +48,67 @@ export const toNewPatient = ({ name, dateOfBirth, ssn, gender, occupation }: Fie
     entries: []
   };
 
-  return newEntry;
+  return newPatient;
 };
 
 export const toNonSensitivePatient = (patient: Patient): NonSensitivePatient => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {ssn, entries, ...nonSensitivePatient} = patient;
   return nonSensitivePatient as NonSensitivePatient;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isHealthCheckRating = (param: any): param is HealthCheckRating => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  return Object.values(HealthCheckRating).includes(param);
+};
+
+const parseHealthCheckRating = (healthCheckRating: unknown): HealthCheckRating => {
+  if (!healthCheckRating || !isHealthCheckRating(healthCheckRating)) {
+      throw new Error('Incorrect or missing healthCheckRating: ' + healthCheckRating);
+  }
+  return healthCheckRating;
+};
+
+export const toNewEntry = (data: unknown) : EntryWithoutId => {
+  const newEntry = data as EntryWithoutId;
+
+  const sharedProps = {
+    id: "",
+    description: parseString(newEntry.description,'description'),
+    date: parseString(newEntry.date,'date'),
+    specialist: parseString(newEntry.specialist,'specialist'),
+    diagnosisCodes: newEntry.diagnosisCodes
+  };
+
+  switch (newEntry.type) {
+    case "OccupationalHealthcare":
+      const sickLeave = !newEntry.sickLeave ? undefined : {
+        startDate: parseDate(newEntry.sickLeave.startDate,'sickLeaveStartDate'),
+        endDate: parseDate(newEntry.sickLeave.endDate,'sickLeaveEndDate')
+      };
+      return {
+        ...sharedProps,
+        type: "OccupationalHealthcare",
+        employerName: parseString(newEntry.employerName,'employerName'),
+        sickLeave
+      };
+    case "Hospital":
+      return {
+        ...sharedProps,
+        type: "Hospital",
+        discharge: {
+          criteria: parseString(newEntry.discharge.criteria,'dischargeCriteria'),
+          date: parseDate(newEntry.discharge.date,'dischargeDate')
+        }
+      };
+    case "HealthCheck":
+      return {
+        ...sharedProps,
+        type: "HealthCheck",
+        healthCheckRating: parseHealthCheckRating(newEntry.healthCheckRating)
+      };
+    default:
+      throw new Error('Incorrect or missing entry type: ' + data);
+  }
 };
