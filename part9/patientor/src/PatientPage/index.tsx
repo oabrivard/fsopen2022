@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { apiBaseUrl } from "../constants";
-import { Patient, Gender, Entry, HealthCheckEntry, HospitalEntry, OccupationalHealthcareEntry, HealthCheckRating } from "../types";
+import { Patient, Gender, Entry, HealthCheckEntry, HospitalEntry, OccupationalHealthcareEntry, HealthCheckRating, EntryType } from "../types";
 import { useStateValue, setLastPatient } from "../state";
 import MaleIcon from "@mui/icons-material/Male";
 import FemaleIcon from "@mui/icons-material/Female";
@@ -10,10 +10,7 @@ import TransgenderIcon from "@mui/icons-material/Transgender";
 import { Button } from "@material-ui/core";
 import AddEntryModal from "../AddEntryModal";
 import { EntryFormValues } from "../AddEntryModal/AddEntryForm";
-
-function assertNever(value: never): never {
-  throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
-}
+import { assertNever } from '../types';
 
 const PatientPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +28,9 @@ const PatientPage = () => {
   const submitNewEntry = async (values: EntryFormValues) => {
     try {
       if (!id || !lastPatient) return;
+
+      console.log("Submitting new value");
+      console.log(values);
 
       const { data: newEntry } = await axios.post<HealthCheckEntry>(
         `${apiBaseUrl}/patients/${id}/entries`,
@@ -123,11 +123,11 @@ const PatientPage = () => {
 
   const EntryDetails = ({ entry }: { entry: Entry }) => {
     switch (entry.type) {
-      case "HealthCheck":
+      case EntryType.HealthCheck:
         return <HealthCheck entry={entry} />;
-      case "Hospital":
+      case EntryType.Hospital:
         return <Hospital entry={entry} />;
-      case "OccupationalHealthcare":
+      case EntryType.OccupationalHealthcare:
         return <OccupationalHealthcare entry={entry} />;
       default:
         assertNever(entry);

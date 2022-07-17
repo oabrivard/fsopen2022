@@ -25,8 +25,14 @@ export enum HealthCheckRating {
   "CriticalRisk" = 3
 }
 
+export enum EntryType {
+  "HealthCheck" = "HealthCheck",
+  "OccupationalHealthcare" = "OccupationalHealthcare",
+  "Hospital" = "Hospital"
+}
+
 export interface HealthCheckEntry extends BaseEntry {
-  type: "HealthCheck";
+  type: EntryType.HealthCheck;
   healthCheckRating: HealthCheckRating;
 }
 
@@ -36,7 +42,7 @@ interface SickLeave {
 }
 
 export interface OccupationalHealthcareEntry extends BaseEntry {
-  type: "OccupationalHealthcare";
+  type: EntryType.OccupationalHealthcare;
   employerName: string;
   sickLeave?: SickLeave;
 }
@@ -47,7 +53,7 @@ interface Discharge {
 }
 
 export interface HospitalEntry extends BaseEntry {
-  type: "Hospital";
+  type: EntryType.Hospital;
   discharge: Discharge;
 }
 
@@ -64,4 +70,8 @@ export interface Patient {
   ssn?: string;
   dateOfBirth?: string;
   entries: Entry[]
+}
+
+export function assertNever(value: never): never {
+  throw new Error(`Unhandled discriminated union member: ${JSON.stringify(value)}`);
 }
