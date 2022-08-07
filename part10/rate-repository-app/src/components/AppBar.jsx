@@ -1,7 +1,10 @@
 import { View, StyleSheet, Pressable, Text, ScrollView } from 'react-native';
-import { Link } from 'react-router-native';
+import { useNavigate } from 'react-router-native';
+import { useQuery, useApolloClient } from '@apollo/client';
+import { ME } from '../graphql/queries';
 import Constants from 'expo-constants';
 import theme from '../theme';
+import useAuthStorage from '../hooks/useAuthStorage';
 
 const styles = StyleSheet.create({
   appBar: {
@@ -24,19 +27,35 @@ const styles = StyleSheet.create({
   }
 });
 
-const AppBarTab = ({text, onPress, path}) =>  
+const AppBarTab = ({text, onPress}) =>  
   <Pressable onPress={onPress} style={styles.appBarTab}>
-    <Link to={path}>
-      <Text style={styles.appBarTabText}>{text}</Text>
-    </Link>
+    <Text style={styles.appBarTabText}>{text}</Text>
   </Pressable>
 
 
 const AppBar = () => {
+  const authStorage = useAuthStorage();
+  const apolloClient = useApolloClient();
+  const navigate = useNavigate();
+  const result = useQuery(ME);
+
+  const isAuthenticated = !result.loading && result.data.me;
+
+  console.log('me: ', result.data.me);
+
+  const signOut = () => {
+    authStorage.removeAccessToken();
+    apolloClient.resetStore();
+    navigate('/signin');
+  }
+
   return <View style={styles.appBar}>
     <ScrollView horizontal contentContainerStyle={{flexGrow: 1}}>
-      <AppBarTab onPress={()=>{}} text='Repositories' path='/'/>
-      <AppBarTab onPress={()=>{}} text='Sign In'  path='/signin'/>
+      <AppBarTab onPress={()=>navigate('/')} text='Repositories' path='/'/>
+      {isAuthenticated ?
+        <AppBarTab onPress={signOut} text='Sign Out'  path='/signin'/>
+      : <AppBarTab onPress={()=>navigate('/signin')} text='Sign In'  path='/signin'/>
+      }
     </ScrollView>
   </View>;
 };
