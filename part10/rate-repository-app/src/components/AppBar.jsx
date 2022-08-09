@@ -41,7 +41,7 @@ const AppBar = () => {
 
   const isAuthenticated = !result.loading && result.data.me;
 
-  console.log('me: ', result.data.me);
+  console.log('me: ', result.data);
 
   const signOut = () => {
     authStorage.removeAccessToken();
@@ -53,7 +53,10 @@ const AppBar = () => {
     <ScrollView horizontal contentContainerStyle={{flexGrow: 1}}>
       <AppBarTab onPress={()=>navigate('/')} text='Repositories' path='/'/>
       {isAuthenticated ?
-        <AppBarTab onPress={signOut} text='Sign Out'  path='/signin'/>
+        <>
+          <AppBarTab onPress={()=>navigate('/review')} text='Create a review'  path='/review'/>
+          <AppBarTab onPress={signOut} text='Sign Out'  path='/signin'/>
+        </>
       : <AppBarTab onPress={()=>navigate('/signin')} text='Sign In'  path='/signin'/>
       }
     </ScrollView>

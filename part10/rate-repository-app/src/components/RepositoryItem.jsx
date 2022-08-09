@@ -1,5 +1,6 @@
-import { Text, View, Image } from 'react-native';
+import { Text, View, Image, Pressable } from 'react-native';
 import EnhancedText from './Text';
+import * as Linking from 'expo-linking';
 import theme from '../theme';
 
 const formatNumber = (number) => number > 1000000 ? `${(number/1000000).toFixed(1)} M` : number > 1000 ? `${(number/1000).toFixed(1)} K` : `${number}`
@@ -40,6 +41,14 @@ const RepositoryItem = ({repository}) => {
           <EnhancedText color='textSecondary'>Rating</EnhancedText>
         </View>
       </View>
+      {repository.url ? 
+        <Pressable onPress={() => Linking.openURL(repository.url)}>
+          <View style={{backgroundColor: theme.colors.primary, borderRadius: 5}}>
+            <Text style={{padding: 10, color: 'white', textAlign:'center'}}>Open in GitHub</Text>
+          </View>
+        </Pressable>
+        : null
+      }
     </View>
   );
 };

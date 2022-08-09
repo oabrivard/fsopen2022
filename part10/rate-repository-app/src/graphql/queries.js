@@ -1,23 +1,29 @@
 import { gql } from '@apollo/client';
 
+const REPOSITORY_DETAILS = gql`
+  fragment RepositoryDetails on Repository {
+    id
+    ownerName
+    name
+    createdAt
+    fullName
+    ratingAverage
+    reviewCount
+    stargazersCount
+    forksCount
+    description
+    language
+    ownerAvatarUrl
+  }
+`;
+
 export const GET_REPOSITORIES = gql`
   query Repositories {
     repositories {
       totalCount
       edges {
         node {
-          id
-          ownerName
-          name
-          createdAt
-          fullName
-          ratingAverage
-          reviewCount
-          stargazersCount
-          forksCount
-          description
-          language
-          ownerAvatarUrl
+          ...RepositoryDetails
         }
         cursor
       }
@@ -29,7 +35,32 @@ export const GET_REPOSITORIES = gql`
       }
     }
   }
+  ${REPOSITORY_DETAILS}
 `;
+
+export const GET_REPOSITORY = gql`
+  query Repository($id: ID!) {
+    repository(id: $id) {
+      ...RepositoryDetails
+      url
+      reviews {
+        edges {
+          node {
+            id
+            text
+            rating
+            createdAt
+            user {
+              id
+              username
+            }
+          }
+        }
+      }
+    }
+  }
+  ${REPOSITORY_DETAILS}
+`
 
 export const ME = gql`
   query Me {
