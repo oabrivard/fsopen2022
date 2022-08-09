@@ -20,7 +20,7 @@ const Author = ({avatar, fullName, description, language}) =>
 
 const RepositoryItem = ({repository}) => {
   return (
-    <View style={{margin: 10}}>
+    <View testID='repositoryItem' style={{margin: 10}}>
       <Author avatar={repository.ownerAvatarUrl} fullName={repository.fullName} description={repository.description} language={repository.language} />
       <View style={{flexDirection: 'row', margin: 10}}>
         <View style={{margin: 10}}>
