@@ -12,7 +12,7 @@ const useRepositories = () => {
     console.log(data)
   }
 
-  return { repositories: loading ? null : data.repositories, loading };
+  return { repositories: loading || error ? null : data.repositories, loading };
 };
 
 export default useRepositories;

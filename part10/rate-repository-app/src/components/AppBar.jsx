@@ -39,7 +39,7 @@ const AppBar = () => {
   const navigate = useNavigate();
   const result = useQuery(ME);
 
-  const isAuthenticated = !result.loading && result.data.me;
+  const isAuthenticated = !result.loading && result.data?.me;
 
   console.log('me: ', result.data);
 
@@ -52,13 +52,13 @@ const AppBar = () => {
   return <View style={styles.appBar}>
     <ScrollView horizontal contentContainerStyle={{flexGrow: 1}}>
       <AppBarTab onPress={()=>navigate('/')} text='Repositories' path='/'/>
-      {isAuthenticated ?
-        <>
+      {isAuthenticated ? <>
           <AppBarTab onPress={()=>navigate('/review')} text='Create a review'  path='/review'/>
           <AppBarTab onPress={signOut} text='Sign Out'  path='/signin'/>
-        </>
-      : <AppBarTab onPress={()=>navigate('/signin')} text='Sign In'  path='/signin'/>
-      }
+      </> : <>
+          <AppBarTab onPress={()=>navigate('/signin')} text='Sign in'  path='/signin'/>
+          <AppBarTab onPress={()=>navigate('/signup')} text='Sign up'  path='/signup'/>
+      </>}
     </ScrollView>
   </View>;
 };
