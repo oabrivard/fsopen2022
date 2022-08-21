@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { FlatList, View, StyleSheet, Pressable } from 'react-native';
 import { useNavigate } from 'react-router-native';
+import {Picker} from '@react-native-picker/picker';
 import RepositoryItem from './RepositoryItem';
 import useRepositories from '../hooks/useRepositories';
   
@@ -25,7 +27,16 @@ const renderItem = ({ item }) => (
   <PressableRespositoryItem item={item} />
 );
 
-export const RepositoryListContainer = ({ repositories }) => {
+const OrderingPicker = ({ ordering, setOrdering }) => 
+  <Picker itemStyle={{height:50}}
+    selectedValue={ordering}
+    onValueChange={(itemValue) => setOrdering(itemValue)}>
+    <Picker.Item label='Latest repositories' value='CREATED_AT|DESC' />
+    <Picker.Item label='Highest rated repositories' value='RATING_AVERAGE|DESC' />
+    <Picker.Item label='Lowest rated repositories' value='RATING_AVERAGE|ASC' />
+  </Picker>
+
+export const RepositoryListContainer = ({ repositories, ordering, setOrdering }) => {
   const repositoryNodes = repositories
     ? repositories.edges.map(edge => edge.node)
     : [];
@@ -35,15 +46,17 @@ export const RepositoryListContainer = ({ repositories }) => {
       data={repositoryNodes}
       ItemSeparatorComponent={ItemSeparator}
       keyExtractor={item => item.id}
+      ListHeaderComponent={() => <OrderingPicker ordering={ordering} setOrdering={setOrdering} />}
       renderItem={renderItem}
     />
   );
 };
 
 const RepositoryList = () => {
-  const { repositories } = useRepositories();
+  const [ordering, setOrdering] = useState('CREATED_AT|DESC');
+  const { repositories } = useRepositories(ordering);
 
-  return <RepositoryListContainer repositories={repositories} />;
+  return <RepositoryListContainer repositories={repositories} ordering={ordering} setOrdering={setOrdering} />;
 };
 
 export default RepositoryList;
