@@ -54,6 +54,7 @@ const AppBar = () => {
       <AppBarTab onPress={()=>navigate('/')} text='Repositories' path='/'/>
       {isAuthenticated ? <>
           <AppBarTab onPress={()=>navigate('/review')} text='Create a review'  path='/review'/>
+          <AppBarTab onPress={()=>navigate('/reviews')} text='My reviews'  path='/reviews'/>
           <AppBarTab onPress={signOut} text='Sign Out'  path='/signin'/>
       </> : <>
           <AppBarTab onPress={()=>navigate('/signin')} text='Sign in'  path='/signin'/>

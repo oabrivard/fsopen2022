@@ -70,10 +70,30 @@ export const GET_REPOSITORY = gql`
 `
 
 export const ME = gql`
-  query Me {
+  query Me($includeReviews: Boolean = false)  {
     me {
       id
       username
+      reviews @include(if: $includeReviews) {
+        edges {
+          node {
+            id
+            text
+            rating
+            createdAt
+            repository {
+              fullName
+            }
+          }
+          cursor
+        }
+        pageInfo {
+          hasPreviousPage
+          hasNextPage
+          startCursor
+          endCursor
+        }
+      }
     }
   }
 `;
