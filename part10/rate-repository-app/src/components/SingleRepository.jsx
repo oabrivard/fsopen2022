@@ -34,22 +34,28 @@ const ReviewItem = ({ review }) =>
 
 const SingleRepository = () => {
   const id = useParams().id
-  const result = useRepository(id);
+  const { repository, fetchMore } = useRepository({id, first:8});
 
-  if (!result.repository) {
+  const onEndReach = () => {
+    console.log('fetch more 2');
+    fetchMore();
+  };
+
+  if (!repository) {
     return null;
   }
 
-  const reviewNodes = result.repository.reviews.edges.map(edge => edge.node);
+  const reviewNodes = repository.reviews.edges.map(edge => edge.node);
 
   return (
     <FlatList
       data={reviewNodes}
       renderItem={({ item }) => <ReviewItem review={item} />}
       keyExtractor={({ id }) => id}
-      ListHeaderComponent={() => <RepositoryInfo repository={result.repository} />}
+      ListHeaderComponent={() => <RepositoryInfo repository={repository} />}
       ItemSeparatorComponent={ItemSeparator}
-    />
+      onEndReached={onEndReach}
+      />
   );
 };
 

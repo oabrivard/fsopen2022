@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FlatList, View, StyleSheet, Pressable } from 'react-native';
 import { useNavigate } from 'react-router-native';
 import {Picker} from '@react-native-picker/picker';
+import { useDebounce } from 'use-debounce';
 import TextInput from './TextInput';
 import RepositoryItem from './RepositoryItem';
 import useRepositories from '../hooks/useRepositories';
@@ -72,6 +73,7 @@ export class RepositoryListContainer extends React.Component {
         keyExtractor={item => item.id}
         ListHeaderComponent={this.renderHeader}
         renderItem={renderItem}
+        onEndReached={this.props.onEndReach}
       />
     );
   }
@@ -80,9 +82,22 @@ export class RepositoryListContainer extends React.Component {
 const RepositoryList = () => {
   const [ordering, setOrdering] = useState('CREATED_AT|DESC');
   const [searchKeyword, setSearchKeyword] = useState('');
-  const { repositories } = useRepositories(ordering, searchKeyword);
+  const [searchKeywordValue] = useDebounce(searchKeyword, 500);
+  const { repositories, fetchMore } = useRepositories({ordering, searchKeywordValue, first:8});
 
-  return <RepositoryListContainer repositories={repositories} ordering={ordering} setOrdering={setOrdering} searchKeyword={searchKeyword} setSearchKeyword={setSearchKeyword} />;
+  const onEndReach = () => {
+    console.log('fetch more');
+    fetchMore();
+  };
+
+  return <RepositoryListContainer 
+    repositories={repositories} 
+    ordering={ordering} 
+    setOrdering={setOrdering} 
+    searchKeyword={searchKeyword} 
+    setSearchKeyword={setSearchKeyword}
+    onEndReach={onEndReach}
+  />;
 };
 
 export default RepositoryList;
