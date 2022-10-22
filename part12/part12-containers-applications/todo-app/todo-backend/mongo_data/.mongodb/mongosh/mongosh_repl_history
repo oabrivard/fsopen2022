@@ -1,0 +1,9 @@
+quit
+db.todos.find({})
+db.todos.insertOne({text:"Increase the number of tools in my toolbelt", done: false})
+db.todos.find({})
+show collections
+use the_database
+show dbs
+quit
+show dbs
