@@ -9,7 +9,7 @@ const Todo = ({ todo, deleteTodo, completeTodo }) => {
 
   const doneInfo = (
     <>
-      <span>This todo is done</span>
+      <span>This todo is done !</span>
       <span>
         <button onClick={onClickDelete(todo)}> Delete </button>
       </span>
