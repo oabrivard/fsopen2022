@@ -19,4 +19,16 @@ services:
     command: ['redis-server', '--appendonly', 'yes'] # Overwrite the CMD
     volumes: # Declare the volume
       - ./redis_data:/data
-      
+  app:
+    image: todo-backend-dev
+    build:
+      context: . # The context will pick this directory as the "build context"
+      dockerfile: dev.Dockerfile # This will simply tell which dockerfile to read
+    volumes:
+      - ./:/usr/src/app # The path can be relative, so ./ is enough to say "the same location as the docker-compose.yml"
+    ports:
+      - 3000:3000
+    environment: 
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URL=mongodb://the_username:the_password@mongo:27017/the_database  
+    container_name: todo-backend-dev # This will name the container hello-front-dev      
